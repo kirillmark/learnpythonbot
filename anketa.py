@@ -1,5 +1,7 @@
 from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import  ConversationHandler
+from telegram.ext import ConversationHandler
+from db import db, get_or_create_user, save_anketa
+
 from utils import main_keyboard
 
 
@@ -34,12 +36,16 @@ def anketa_rating(update, context):
 
 def anketa_comment(update, context):
     context.user_data['anketa']['comment'] = update.message.text
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    save_anketa(db, user['user_id'])
     user_text = format_anketa(context.user_data['anketa'])
     update.message.reply_text(user_text, reply_markup=main_keyboard(), parse_mode=ParseMode.HTML)
     return ConversationHandler.END
 
 
 def anketa_skip(update, context):
+    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    save_anketa(db, user['user_id'])
     user_text = format_anketa(context.user_data['anketa'])
     update.message.reply_text(user_text, reply_markup=main_keyboard(), parse_mode=ParseMode.HTML)
     return ConversationHandler.END
